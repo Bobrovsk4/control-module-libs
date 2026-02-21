@@ -5,6 +5,11 @@ use crate::common::{build_schedule, create_result, AlgResult};
 use crate::gantt_chart::draw_gantt;
 
 #[unsafe(no_mangle)]
+pub extern "C" fn name() -> String {
+    String::from("Метод Петрова-Соколицына")
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     if matrix.is_empty() {
         return Err("Матрица пуста".to_string());

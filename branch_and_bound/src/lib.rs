@@ -7,6 +7,11 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 #[unsafe(no_mangle)]
+pub extern "C" fn name() -> String {
+    String::from("Метод ветвей и границ")
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, BranchAndBoundStats), String> {
     let time_limit_ms = 5000;
     let node_limit = 1_000_000;

@@ -5,6 +5,11 @@ use crate::common::{AlgResult, create_result};
 use crate::gantt_chart::draw_gantt;
 
 #[unsafe(no_mangle)]
+pub extern "C" fn name() -> String {
+    String::from("Джонсон классический")
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     let mut jobs: Vec<(usize, i32, i32)> = matrix
         .iter()

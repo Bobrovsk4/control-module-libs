@@ -5,6 +5,11 @@ use crate::common::{build_schedule, create_result, AlgResult};
 use crate::gantt_chart::draw_gantt;
 
 #[unsafe(no_mangle)]
+pub extern "C" fn name() -> String {
+    String::from("Метод полного перебора")
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     let n = matrix.len();
     if n > 10 {

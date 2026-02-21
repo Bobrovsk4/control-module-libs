@@ -5,6 +5,11 @@ use crate::common::{create_result, AlgResult};
 use crate::gantt_chart::draw_gantt;
 
 #[unsafe(no_mangle)]
+pub extern "C" fn name() -> String {
+    String::from("Метод приоритетов")
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     if matrix[0].len() != 2 {
         return Err("Нужно 2 станка".into());
