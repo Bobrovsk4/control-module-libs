@@ -1,16 +1,17 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{build_schedule, create_result, AlgResult};
+use crate::common::{AlgResult, build_schedule, create_result};
 use crate::gantt_chart::draw_gantt;
+use std::ffi::{CString, c_char};
 
 #[unsafe(no_mangle)]
-pub extern "C" fn name() -> String {
-    String::from("Метод полного перебора")
+pub extern "C" fn name() -> *const c_char {
+    let s = CString::new("Метод полного перебора").unwrap();
+    s.into_raw()
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
+fn exec_alg(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     let n = matrix.len();
     if n > 10 {
         return Err("Слишком много задач (>10)".into());
@@ -56,11 +57,8 @@ fn generate_perms(n: usize, cur: &mut Vec<usize>, res: &mut Vec<Vec<usize>>) {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn format_result(
-    result: &AlgResult,
-    initial_makespan: i32,
-    matrix: &Vec<Vec<i32>>,
-) -> String {
+pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
+    let (result, initial_makespan) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     if matrix[0].len() == 2 {
@@ -106,5 +104,6 @@ pub extern "C" fn format_result(
         output.push_str(&format!("M{}: {}\n", machine + 1, idle));
     }
 
-    output
+    let s = CString::new(output).unwrap();
+    s.into_raw()
 }

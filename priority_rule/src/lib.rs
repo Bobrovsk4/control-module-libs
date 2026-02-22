@@ -1,16 +1,16 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{create_result, AlgResult};
+use crate::common::{AlgResult, create_result};
 use crate::gantt_chart::draw_gantt;
+use std::ffi::{CString, c_char};
 
 #[unsafe(no_mangle)]
-pub extern "C" fn name() -> String {
-    String::from("Метод приоритетов")
+pub extern "C" fn name() -> *const c_char {
+    CString::new("Метод приоритетов").unwrap().into_raw()
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
+fn exec_alg(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
     if matrix[0].len() != 2 {
         return Err("Нужно 2 станка".into());
     }
@@ -40,11 +40,8 @@ pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), Strin
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn format_result(
-    result: &AlgResult,
-    initial_makespan: i32,
-    matrix: &Vec<Vec<i32>>,
-) -> String {
+pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
+    let (result, initial_makespan) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     if matrix[0].len() == 2 {
@@ -90,5 +87,5 @@ pub extern "C" fn format_result(
         output.push_str(&format!("M{}: {}\n", machine + 1, idle));
     }
 
-    output
+    CString::new(output).unwrap().into_raw()
 }
