@@ -1,3 +1,5 @@
+use std::slice;
+
 #[allow(dead_code)] // чтобы warning на method_name не мешал
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlgResult {
@@ -71,4 +73,23 @@ pub fn create_result(
         idle_times,
         method_name: name.into(),
     })
+}
+
+pub unsafe fn from_ffi_matrix(
+    data: *const i32,
+    rows: usize,
+    cols: usize,
+) -> Result<Vec<Vec<i32>>, &'static str> {
+    if data.is_null() {
+        return Err("null pointer");
+    }
+    if rows == 0 || cols == 0 {
+        return Ok(Vec::new());
+    }
+
+    let total = rows.checked_mul(cols).ok_or("overflow: rows * cols")?;
+    let flat = unsafe { slice::from_raw_parts(data, total) };
+    let matrix = flat.chunks(cols).map(|chunk| chunk.to_vec()).collect();
+
+    Ok(matrix)
 }

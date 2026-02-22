@@ -1,7 +1,7 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{AlgResult, build_schedule, create_result};
+use crate::common::{AlgResult, build_schedule, create_result, from_ffi_matrix};
 use crate::gantt_chart::draw_gantt;
 use std::ffi::{CString, c_char};
 
@@ -128,8 +128,10 @@ fn exec_alg(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, i32), String> {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
-    let (result, initial_makespan) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
+pub extern "C" fn exec(data: *const i32, rows: usize, cols: usize) -> *const c_char {
+    let matrix = unsafe { from_ffi_matrix(data, rows, cols).unwrap() };
+
+    let (result, initial_makespan) = exec_alg(&matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     let num_machines = matrix[0].len();
@@ -189,7 +191,7 @@ pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
     let mut seq_s1: Vec<&JobMetrics> = metrics.iter().collect();
     seq_s1.sort_by(|a, b| b.s1.cmp(&a.s1));
     let seq_s1_indices: Vec<usize> = seq_s1.iter().map(|m| m.job_idx).collect();
-    let (_, makespan_s1, _) = build_schedule(matrix, &seq_s1_indices).unwrap();
+    let (_, makespan_s1, _) = build_schedule(&matrix, &seq_s1_indices).unwrap();
     let seq_s1_str: String = seq_s1
         .iter()
         .map(|m| m.job_name.as_str())
@@ -203,7 +205,7 @@ pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
     let mut seq_s2: Vec<&JobMetrics> = metrics.iter().collect();
     seq_s2.sort_by(|a, b| a.s2.cmp(&b.s2));
     let seq_s2_indices: Vec<usize> = seq_s2.iter().map(|m| m.job_idx).collect();
-    let (_, makespan_s2, _) = build_schedule(matrix, &seq_s2_indices).unwrap();
+    let (_, makespan_s2, _) = build_schedule(&matrix, &seq_s2_indices).unwrap();
     let seq_s2_str: String = seq_s2
         .iter()
         .map(|m| m.job_name.as_str())
@@ -217,7 +219,7 @@ pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
     let mut seq_d: Vec<&JobMetrics> = metrics.iter().collect();
     seq_d.sort_by(|a, b| b.d.cmp(&a.d));
     let seq_d_indices: Vec<usize> = seq_d.iter().map(|m| m.job_idx).collect();
-    let (_, makespan_d, _) = build_schedule(matrix, &seq_d_indices).unwrap();
+    let (_, makespan_d, _) = build_schedule(&matrix, &seq_d_indices).unwrap();
     let seq_d_str: String = seq_d
         .iter()
         .map(|m| m.job_name.as_str())

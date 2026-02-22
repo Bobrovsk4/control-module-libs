@@ -1,7 +1,7 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{AlgResult, build_schedule, create_result};
+use crate::common::{AlgResult, build_schedule, create_result, from_ffi_matrix};
 use crate::gantt_chart::draw_gantt;
 use std::ffi::{CString, c_char};
 
@@ -57,8 +57,10 @@ fn generate_perms(n: usize, cur: &mut Vec<usize>, res: &mut Vec<Vec<usize>>) {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
-    let (result, initial_makespan) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
+pub extern "C" fn exec(data: *const i32, rows: usize, cols: usize) -> *const c_char {
+    let matrix = unsafe { from_ffi_matrix(data, rows, cols).unwrap() };
+
+    let (result, initial_makespan) = exec_alg(&matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     if matrix[0].len() == 2 {

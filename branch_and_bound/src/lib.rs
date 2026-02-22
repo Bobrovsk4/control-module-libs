@@ -1,7 +1,7 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{AlgResult, create_result};
+use crate::common::{AlgResult, create_result, from_ffi_matrix};
 use crate::gantt_chart::draw_gantt;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -175,8 +175,10 @@ pub struct BranchAndBoundStats {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
-    let (result, stats) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
+pub extern "C" fn exec(data: *const i32, rows: usize, cols: usize) -> *const c_char {
+    let matrix = unsafe { from_ffi_matrix(data, rows, cols).unwrap() };
+
+    let (result, stats) = exec_alg(&matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     output.push_str("Статистика поиска:\n");
