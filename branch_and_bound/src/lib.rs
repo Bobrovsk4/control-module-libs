@@ -1,18 +1,18 @@
 mod common;
 mod gantt_chart;
 
-use crate::common::{create_result, AlgResult};
+use crate::common::{AlgResult, create_result};
 use crate::gantt_chart::draw_gantt;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::ffi::{CString, c_char};
 
 #[unsafe(no_mangle)]
-pub extern "C" fn name() -> String {
-    String::from("Метод ветвей и границ")
+pub extern "C" fn name() -> *const c_char {
+    CString::new("Метод ветвей и границ").unwrap().into_raw()
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, BranchAndBoundStats), String> {
+fn exec_alg(matrix: &Vec<Vec<i32>>) -> Result<(AlgResult, BranchAndBoundStats), String> {
     let time_limit_ms = 5000;
     let node_limit = 1_000_000;
 
@@ -175,11 +175,8 @@ pub struct BranchAndBoundStats {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn format_result(
-    result: &AlgResult,
-    stats: &BranchAndBoundStats,
-    matrix: &Vec<Vec<i32>>,
-) -> String {
+pub extern "C" fn exec(matrix: &Vec<Vec<i32>>) -> *const c_char {
+    let (result, stats) = exec_alg(matrix).expect("Ошибка выполнения алгоритма");
     let mut output = String::new();
 
     output.push_str("Статистика поиска:\n");
@@ -258,7 +255,8 @@ pub extern "C" fn format_result(
     for (machine, &idle) in result.idle_times.iter().enumerate() {
         output.push_str(&format!("  M{}: {}\n", machine + 1, idle));
     }
-    output
+
+    CString::new(output).unwrap().into_raw()
 }
 
 #[derive(Debug, Clone)]
